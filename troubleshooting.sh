@@ -20,7 +20,7 @@ searching () {
   elif [ "$#" -eq 3 ]; then
     result=$(find $2 -type $3 -name $1 2>/dev/null)
   else
-    echo "Error parsing too many variables."
+    echo "[-] Error parsing too many variables."
   fi
   echo $result
 }
@@ -32,28 +32,36 @@ verify_path () {
 
 # Running verification
 if [[ $EUID -ne 0 ]]; then
-  echo -e $LIGHT_RED"This script must be run as root for some checks to take place"$RESET
+  echo -e $LIGHT_RED"[-] This script must be run as root for some checks to take place"$RESET
   exit 1
 fi
 
 # Finding pocket binary in path
 BINARY_PATH=$(searching 'pocket')
 if [ -z $BINARY_PATH ]; then
-  echo -e  $LIGHT_RED"Pocket binary not found. Is it installed?\n"$RESET
+  echo -e  $LIGHT_RED"[-] Pocket binary not found. Is it installed?\n"$RESET
   exit 1
 else
-  echo -e $LIGHT_GREEN"Pocket binary found at: "$RESET$BINARY_PATH
+  echo -e $LIGHT_GREEN"[+] Pocket binary found at: "$RESET$BINARY_PATH
   verified=$(verify_path $BINARY_PATH)
   if [[ -z "$verified" ]]; then
-    echo -e $LIGHT_YELLOW"Pocket binary NOT in PATH, it's in:"$RESET$BINARY_PATH
+    echo -e $LIGHT_YELLOW"[*] Pocket binary NOT in PATH, it's in:"$RESET$BINARY_PATH
   fi
 fi
 
 # Searching for .pocket configuration directory
 CONFIGURATION_PATH=$(searching '.pocket' '/' 'd')
 if [[ -z $CONFIGURATION_PATH ]]; then
-  echo -e  $LIGHT_RED"Pocket directory not found. Is it configured?\n"$RESET
+  echo -e  $LIGHT_RED"[-] Pocket directory not found. Is it configured?\n"$RESET
   exit 1
 else
-  echo -e $LIGHT_GREEN"Pocket directory found at: "$RESET$CONFIGURATION_PATH
+  echo -e $LIGHT_GREEN"[+] Pocket directory found at: "$RESET$CONFIGURATION_PATH
+fi
+
+# Check for internet connection
+INTERNET_CONNECTION=$(ping google.com -t 2 -c 2 | grep "bytes from")
+if [[ -z $INTERNET_CONNECTION ]]; then
+  echo -e $LIGHT_RED"[-] No internet connection detected"$RESET
+else
+  echo -e $LIGHT_GREEN"[+] Internet connection detected"$RESET
 fi
